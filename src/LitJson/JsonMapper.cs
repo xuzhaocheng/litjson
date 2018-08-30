@@ -1,3 +1,5 @@
+#define UNITY3D
+
 #region Header
 /**
  * JsonMapper.cs
@@ -603,6 +605,135 @@ namespace LitJson
                 delegate (object obj, JsonWriter writer) {
                     writer.Write ((ulong) obj);
                 };
+#if UNITY3D
+            base_exporters_table[typeof (UnityEngine.Vector2)] = 
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Vector2 v2 = (UnityEngine.Vector2)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName("x");
+                    writer.Write(v2.x);
+                    writer.WritePropertyName("y");
+                    writer.Write(v2.y);
+                    writer.WriteObjectEnd ();
+                };
+
+            base_exporters_table[typeof (UnityEngine.Vector3)] =
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Vector3 v3 = (UnityEngine.Vector3)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName("x");
+                    writer.Write(v3.x);
+                    writer.WritePropertyName("y");
+                    writer.Write(v3.y);
+                    writer.WritePropertyName("z");
+                    writer.Write(v3.z);
+                    writer.WriteObjectEnd ();
+                };
+
+            base_exporters_table[typeof (UnityEngine.Vector4)] =
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Vector4 v4 = (UnityEngine.Vector4)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName("x");
+                    writer.Write(v4.x);
+                    writer.WritePropertyName("y");
+                    writer.Write(v4.y);
+                    writer.WritePropertyName("z");
+                    writer.Write(v4.z);
+                    writer.WritePropertyName("z");
+                    writer.Write(v4.w);
+                    writer.WriteObjectEnd ();
+                };
+
+            base_exporters_table[typeof (UnityEngine.Quaternion)] =
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Quaternion q = (UnityEngine.Quaternion)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName("x");
+                    writer.Write(q.x);
+                    writer.WritePropertyName("y");
+                    writer.Write(q.y);
+                    writer.WritePropertyName("z");
+                    writer.Write(q.z);
+                    writer.WritePropertyName("z");
+                    writer.Write(q.w);
+                    writer.WriteObjectEnd ()
+                };
+
+            base_exporters_table[typeof (UnityEngine.Matrix4x4)] =
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Matrix4x4 m = (UnityEngine.Matrix4x4)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName("m00");
+                    writer.Write(m.m00);
+                    writer.WritePropertyName("m33");
+                    writer.Write(m.m33);
+                    writer.WritePropertyName("m23");
+                    writer.Write(m.m23);
+                    writer.WritePropertyName("m13");
+                    writer.Write(m.m13);
+                    writer.WritePropertyName("m03");
+                    writer.Write(m.m03);
+                    writer.WritePropertyName("m32");
+                    writer.Write(m.m32);
+                    writer.WritePropertyName("m12");
+                    writer.Write(m.m12);
+                    writer.WritePropertyName("m02");
+                    writer.Write(m.m02);
+                    writer.WritePropertyName("m22");
+                    writer.Write(m.m22);
+                    writer.WritePropertyName("m21");
+                    writer.Write(m.m21);
+                    writer.WritePropertyName("m11");
+                    writer.Write(m.m11);
+                    writer.WritePropertyName("m01");
+                    writer.Write(m.m01);
+                    writer.WritePropertyName("m30");
+                    writer.Write(m.m30);
+                    writer.WritePropertyName("m20");
+                    writer.Write(m.m20);
+                    writer.WritePropertyName("m10");
+                    writer.Write(m.m10);
+                    writer.WritePropertyName("m31");
+                    writer.Write(m.m31);
+                    writer.WriteObjectEnd ();
+                };
+
+            base_exporters_table[typeof (UnityEngine.Ray)] =
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Ray r = (UnityEngine.Ray)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName ("origin");
+                    writer.Write (r.origin);
+                    writer.WritePropertyName ("direction");
+                    writer.Write (r.direction);
+                    writer.WriteObjectEnd ();
+                };
+
+            base_exporters_table[typeof (UnityEngine.RaycastHit)] =
+                delegate (object obj, JsonWriter writer) {
+                    UnityEngine.RaycastHit r = (UnityEngine.RaycastHit)obj
+                    writer.WriteObjectStart ();
+                    writer.WritePropertyName ("barycentricCoordinate");
+                    writer.Write (r.barycentricCoordinate);
+                    writer.WritePropertyName ("distance");
+                    writer.Write (r.distance);
+                    writer.WritePropertyName ("normal");
+                    writer.Write (r.normal);
+                    writer.WritePropertyName ("point");
+                    writer.Write (r.point);
+                    writer.WriteObjectEnd ();
+                };
+
+            base_exporters_table[typeof (UnityEngine.Color)] =
+              delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Color c = (UnityEngine.Color)obj
+                    writer.WriteObjectStart ();
+                    writer.Put (string.Format ("\"r\":{0},\"g\":{1},\"b\":{2},\"a\":{3}", c.r, c.g, c.b, c.a));
+                    writer.WriteObjectEnd ();
+                };
+#endif
+
         }
 
         private static void RegisterBaseImporters ()
@@ -825,6 +956,16 @@ namespace LitJson
 
             writer.WriteObjectStart ();
             foreach (PropertyMetadata p_data in props) {
+#if UNITY3D
+                if (IsUnserializableUnityType(p_data)) {
+                    continue;
+                }
+#endif
+                
+                if (IsPropertyIgnored(p_data)) {
+                    return;
+                }
+
                 if (p_data.IsField) {
                     writer.WritePropertyName (p_data.Info.Name);
                     WriteValue (((FieldInfo) p_data.Info).GetValue (obj),
@@ -842,6 +983,34 @@ namespace LitJson
             }
             writer.WriteObjectEnd ();
         }
+
+        private static bool IsPropertyIgnored(PropertyMetadata p_data)
+        {
+            IgnoreAttribute[] attr = (IgnoreAttribute[])p_data.Info.GetCustomAttributes(typeof(IgnoreAttribute), false);
+            return 0 < attr.Length;
+        }
+
+#if UNITY3D
+        private static bool IsUnserializableUnityType (PropertyMetadata p_data)
+        {
+            Type t;
+            t = GetTypeOf(p_data);
+            
+            if (t == typeof (UnityEngine.GameObject)) {
+                return true;
+            }
+            if (t == typeof (UnityEngine.Transform)) {
+                return true;
+            }
+            if (t == typeof (UnityEngine.Material)) {
+                return true;
+            }
+            if (t == typeof (UnityEngine.Object)) {
+                return true;
+            }
+            return false;
+        }
+#endif
         #endregion
 
 
