@@ -1,5 +1,3 @@
-#define UNITY3D
-
 #region Header
 /**
  * JsonMapper.cs
@@ -605,64 +603,65 @@ namespace LitJson
                 delegate (object obj, JsonWriter writer) {
                     writer.Write ((ulong) obj);
                 };
-#if UNITY3D
-            base_exporters_table[typeof (UnityEngine.Vector2)] = 
-                delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Vector2 v2 = (UnityEngine.Vector2)obj
-                    writer.WriteObjectStart ();
-                    writer.WritePropertyName("x");
-                    writer.Write(v2.x);
-                    writer.WritePropertyName("y");
-                    writer.Write(v2.y);
-                    writer.WriteObjectEnd ();
-                };
+#if UNITY3D || UNITY_5_3_OR_NEWER
 
-            base_exporters_table[typeof (UnityEngine.Vector3)] =
-                delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Vector3 v3 = (UnityEngine.Vector3)obj
-                    writer.WriteObjectStart ();
-                    writer.WritePropertyName("x");
-                    writer.Write(v3.x);
-                    writer.WritePropertyName("y");
-                    writer.Write(v3.y);
-                    writer.WritePropertyName("z");
-                    writer.Write(v3.z);
-                    writer.WriteObjectEnd ();
-                };
+            ExporterFunc vector2_expoter = delegate (object obj, JsonWriter writer) {
+                UnityEngine.Vector2 v2 = (UnityEngine.Vector2)obj;
+                writer.WriteObjectStart();
+                writer.WritePropertyName("x");
+                writer.Write(v2.x);
+                writer.WritePropertyName("y");
+                writer.Write(v2.y);
+                writer.WriteObjectEnd();
+            };
+            base_exporters_table[typeof(UnityEngine.Vector2)] = vector2_expoter;
 
-            base_exporters_table[typeof (UnityEngine.Vector4)] =
-                delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Vector4 v4 = (UnityEngine.Vector4)obj
-                    writer.WriteObjectStart ();
-                    writer.WritePropertyName("x");
-                    writer.Write(v4.x);
-                    writer.WritePropertyName("y");
-                    writer.Write(v4.y);
-                    writer.WritePropertyName("z");
-                    writer.Write(v4.z);
-                    writer.WritePropertyName("z");
-                    writer.Write(v4.w);
-                    writer.WriteObjectEnd ();
-                };
+            ExporterFunc vector3_expoter = delegate (object obj, JsonWriter writer) {
+                UnityEngine.Vector3 v3 = (UnityEngine.Vector3)obj;
+                writer.WriteObjectStart();
+                writer.WritePropertyName("x");
+                writer.Write(v3.x);
+                writer.WritePropertyName("y");
+                writer.Write(v3.y);
+                writer.WritePropertyName("z");
+                writer.Write(v3.z);
+                writer.WriteObjectEnd();
+            };
+            base_exporters_table[typeof(UnityEngine.Vector3)] = vector3_expoter;
+                
+            ExporterFunc vector4_expoter = delegate (object obj, JsonWriter writer) {
+                UnityEngine.Vector4 v4 = (UnityEngine.Vector4)obj;
+                writer.WriteObjectStart();
+                writer.WritePropertyName("x");
+                writer.Write(v4.x);
+                writer.WritePropertyName("y");
+                writer.Write(v4.y);
+                writer.WritePropertyName("z");
+                writer.Write(v4.z);
+                writer.WritePropertyName("z");
+                writer.Write(v4.w);
+                writer.WriteObjectEnd();
+            };
+            base_exporters_table[typeof(UnityEngine.Vector4)] = vector4_expoter;
+                
+            ExporterFunc quaternion_expoter = delegate (object obj, JsonWriter writer) {
+                UnityEngine.Quaternion q = (UnityEngine.Quaternion)obj;
+                writer.WriteObjectStart();
+                writer.WritePropertyName("x");
+                writer.Write(q.x);
+                writer.WritePropertyName("y");
+                writer.Write(q.y);
+                writer.WritePropertyName("z");
+                writer.Write(q.z);
+                writer.WritePropertyName("z");
+                writer.Write(q.w);
+                writer.WriteObjectEnd();
+            };
+            base_exporters_table[typeof(UnityEngine.Quaternion)] = quaternion_expoter;
+                
 
-            base_exporters_table[typeof (UnityEngine.Quaternion)] =
-                delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Quaternion q = (UnityEngine.Quaternion)obj
-                    writer.WriteObjectStart ();
-                    writer.WritePropertyName("x");
-                    writer.Write(q.x);
-                    writer.WritePropertyName("y");
-                    writer.Write(q.y);
-                    writer.WritePropertyName("z");
-                    writer.Write(q.z);
-                    writer.WritePropertyName("z");
-                    writer.Write(q.w);
-                    writer.WriteObjectEnd ()
-                };
-
-            base_exporters_table[typeof (UnityEngine.Matrix4x4)] =
-                delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Matrix4x4 m = (UnityEngine.Matrix4x4)obj
+            ExporterFunc matrix4x4_exporter =  delegate (object obj, JsonWriter writer) {
+                    UnityEngine.Matrix4x4 m = (UnityEngine.Matrix4x4)obj;
                     writer.WriteObjectStart ();
                     writer.WritePropertyName("m00");
                     writer.Write(m.m00);
@@ -697,40 +696,54 @@ namespace LitJson
                     writer.WritePropertyName("m31");
                     writer.Write(m.m31);
                     writer.WriteObjectEnd ();
-                };
+            };
+            base_exporters_table[typeof(UnityEngine.Matrix4x4)] = matrix4x4_exporter;
 
             base_exporters_table[typeof (UnityEngine.Ray)] =
                 delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Ray r = (UnityEngine.Ray)obj
+                    UnityEngine.Ray r = (UnityEngine.Ray)obj;
                     writer.WriteObjectStart ();
                     writer.WritePropertyName ("origin");
-                    writer.Write (r.origin);
+                    WriteValue(r.origin, writer, true, 0);
+                    //writer.Write (r.origin);
                     writer.WritePropertyName ("direction");
-                    writer.Write (r.direction);
+                    //writer.Write (r.direction);
+                    WriteValue(r.direction, writer, true, 0);
                     writer.WriteObjectEnd ();
                 };
 
             base_exporters_table[typeof (UnityEngine.RaycastHit)] =
                 delegate (object obj, JsonWriter writer) {
-                    UnityEngine.RaycastHit r = (UnityEngine.RaycastHit)obj
+                    UnityEngine.RaycastHit r = (UnityEngine.RaycastHit)obj;
                     writer.WriteObjectStart ();
                     writer.WritePropertyName ("barycentricCoordinate");
-                    writer.Write (r.barycentricCoordinate);
+                    WriteValue(r.barycentricCoordinate, writer, true, 0);
+                    //writer.Write (r.barycentricCoordinate);
                     writer.WritePropertyName ("distance");
                     writer.Write (r.distance);
                     writer.WritePropertyName ("normal");
-                    writer.Write (r.normal);
+                    WriteValue(r.normal, writer, true, 0);
+                    //writer.Write (r.normal);
                     writer.WritePropertyName ("point");
-                    writer.Write (r.point);
+                    WriteValue(r.point, writer, true, 0);
+                    //writer.Write (r.point);
                     writer.WriteObjectEnd ();
                 };
 
             base_exporters_table[typeof (UnityEngine.Color)] =
               delegate (object obj, JsonWriter writer) {
-                    UnityEngine.Color c = (UnityEngine.Color)obj
-                    writer.WriteObjectStart ();
-                    writer.Put (string.Format ("\"r\":{0},\"g\":{1},\"b\":{2},\"a\":{3}", c.r, c.g, c.b, c.a));
-                    writer.WriteObjectEnd ();
+                  UnityEngine.Color c = (UnityEngine.Color)obj;
+                  writer.WriteObjectStart ();
+                  writer.WritePropertyName("r");
+                  writer.Write(c.r);
+                  writer.WritePropertyName("g");
+                  writer.Write(c.g);
+                  writer.WritePropertyName("b");
+                  writer.Write(c.b);
+                  writer.WritePropertyName("a");
+                  writer.Write(c.a);
+                  //writer.Put (string.Format ("\"r\":{0},\"g\":{1},\"b\":{2},\"a\":{3}", c.r, c.g, c.b, c.a));
+                  writer.WriteObjectEnd ();
                 };
 #endif
 
@@ -824,6 +837,12 @@ namespace LitJson
             };
             RegisterImporter(base_importers_table, typeof(string),
                 typeof(DateTimeOffset), importer);
+
+            importer = delegate (object input) {
+                return Convert.ToSingle(input);
+            };
+            RegisterImporter(base_importers_table, typeof(double),
+                typeof(float), importer);
         }
 
         private static void RegisterImporter (
@@ -956,14 +975,14 @@ namespace LitJson
 
             writer.WriteObjectStart ();
             foreach (PropertyMetadata p_data in props) {
-#if UNITY3D
+#if UNITY3D || UNITY_5_3_OR_NEWER
                 if (IsUnserializableUnityType(p_data)) {
                     continue;
                 }
 #endif
                 
                 if (IsPropertyIgnored(p_data)) {
-                    return;
+                    continue;
                 }
 
                 if (p_data.IsField) {
@@ -990,7 +1009,23 @@ namespace LitJson
             return 0 < attr.Length;
         }
 
-#if UNITY3D
+        private static Type GetTypeOf(PropertyMetadata p_data)
+        {
+            Type t;
+            if (p_data.IsField)
+            {
+                var f_Info = (FieldInfo)p_data.Info;
+                t = f_Info.FieldType;
+            }
+            else
+            {
+                var p_Info = (PropertyInfo)p_data.Info;
+                t = p_Info.PropertyType;
+            }
+            return t;
+        }
+
+#if UNITY3D || UNITY_5_3_OR_NEWER
         private static bool IsUnserializableUnityType (PropertyMetadata p_data)
         {
             Type t;
