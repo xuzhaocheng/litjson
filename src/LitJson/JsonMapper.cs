@@ -603,6 +603,11 @@ namespace LitJson
                 delegate (object obj, JsonWriter writer) {
                     writer.Write ((ulong) obj);
                 };
+
+            base_exporters_table[typeof (float)] =
+                delegate (object obj, JsonWriter writer) {
+                    writer.Write((float)obj);
+                };
 #if UNITY3D || UNITY_5_3_OR_NEWER
 
             ExporterFunc vector2_expoter = delegate (object obj, JsonWriter writer) {
